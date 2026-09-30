@@ -29,7 +29,7 @@ export interface DailyPriceRow {
 
 /**
  * Fetch the latest price snapshot for all tracked tickers.
- * Falls back to mock data when Supabase is not configured.
+ * Returns [] when Supabase env vars are missing or the query fails.
  */
 export async function fetchLatestPrices(): Promise<DailyPriceRow[]> {
   if (!supabase) return [];

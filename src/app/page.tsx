@@ -270,8 +270,21 @@ export default function Home() {
           </div>
         ) : analyticsData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-zinc-500 text-sm mb-2">No data available yet.</div>
-            <div className="text-zinc-600 text-xs">Run the daily scraper to populate the database.</div>
+            {supabase ? (
+              <>
+                <div className="text-zinc-500 text-sm mb-2">No data available yet.</div>
+                <div className="text-zinc-600 text-xs">Supabase is connected, but the tables are empty. Run the daily scraper to populate them.</div>
+              </>
+            ) : (
+              <>
+                <div className="text-amber-400 text-sm mb-2">Supabase is not configured for this deployment.</div>
+                <div className="text-zinc-600 text-xs max-w-md">
+                  NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY were missing at build
+                  time, so the app has no database connection. Add them as environment variables
+                  and redeploy.
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
