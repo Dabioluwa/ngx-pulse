@@ -25,3 +25,7 @@ venv/
 *.pem
 .vercel
 *.tsbuildinfo
+
+# netlify cli local state
+.netlify/
+*.log
