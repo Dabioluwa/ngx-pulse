@@ -18,7 +18,13 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Query API error:", err);
     return NextResponse.json(
-      { error: "Internal server error." },
+      {
+        error: "Internal server error.",
+        // Surface the real cause in development; hide it in production.
+        ...(process.env.NODE_ENV === "development"
+          ? { detail: err instanceof Error ? err.message : String(err) }
+          : {}),
+      },
       { status: 500 }
     );
   }

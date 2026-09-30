@@ -1,11 +1,34 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
 
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+/**
+ * createClient() throws on a malformed URL, which fails the entire build with
+ * an opaque "Invalid supabaseUrl" error. Validate first so a missing or bad
+ * value degrades to a null client (and the UI shows a clear message) instead.
+ */
+function buildClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "[supabase] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set. " +
+        "The screener will render empty. Add them as build-time env vars and redeploy."
+      );
+    }
+    return null;
+  }
+  if (!/^https?:\/\/.+/i.test(supabaseUrl)) {
+    console.error(
+      `[supabase] NEXT_PUBLIC_SUPABASE_URL is not a valid http(s) URL (got "${supabaseUrl}"). ` +
+      "Check for stray quotes or whitespace in the environment variable."
+    );
+    return null;
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
+
+export const supabase = buildClient();
 
 export interface DailyPriceRow {
   ticker: string;
