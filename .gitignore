@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+
+# env — NEVER commit real keys
+.env
+.env.local
+.env*.local
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# misc
+.DS_Store
+*.pem
+.vercel
+*.tsbuildinfo

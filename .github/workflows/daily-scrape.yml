@@ -1,0 +1,48 @@
+name: Daily NGX Data Pipeline
+
+on:
+  schedule:
+    # 19:00 WAT (18:00 UTC) Mon-Fri, after the NGX close.
+    # NOTE: GitHub cron is UTC and may start up to ~15 min late.
+    - cron: "0 18 * * 1-5"
+  workflow_dispatch:
+
+# Never let two runs overlap, or they would compete for the Mansa
+# daily request quota.
+concurrency:
+  group: ngx-pulse-daily-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape-and-upsert:
+    runs-on: ubuntu-latest
+    # 40 tickers x 2 API calls, plus Supabase round-trips and retries.
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ETL pipeline
+        env:
+          MANSA_API_KEY:       ${{ secrets.MANSA_API_KEY }}
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python python/scraper.py
+
+      - name: Summarise outcome
+        if: always()
+        run: echo "Pipeline finished. Check the log above for processed/skipped counts."
+
+      - name: Mark failure
+        if: failure()
+        run: echo "::error::Pipeline failed - see the log for the failing ticker"
